@@ -8,4 +8,7 @@ Materials for the course "BIOS5211 / BIOS9211 – Distribution Modelling" at the
 3. Download spatial data before the first lab through the link [here](https://uio-my.sharepoint.com/:u:/g/personal/peterhor_uio_no/EXZrawRTxcNNucTHKkUf-FIBqanCux8Vd_jGHW767Xd0KA?e=FYfsa0)
 
 4. After you have downloaded the spatial data (12 raster files in TIF format), move the files into the prepared folder **distribution-modelling-uio-2025/lab_data** of your local copy of the github repository and place them there in a folder you create called RASTER.
-5. New files will become available after lab exercises. [Check for changes](https://docs.github.com/en/get-started/using-git/getting-changes-from-a-remote-repository) to this repository by *git -fetch* in the command line or *pull origin* in the Desktop version
+5. New files will become available after lab exercises. [Check for changes](https://docs.github.com/en/get-started/using-git/getting-changes-from-a-remote-repository) to this repository by *git -fetch* in the command line or *fetch origin* in the Desktop version
+
+   <img width="228" height="49" alt="image" src="https://github.com/user-attachments/assets/b6ef51ee-258d-4715-81e6-8669dc39de23" />
+
