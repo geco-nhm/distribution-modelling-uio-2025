@@ -18,6 +18,9 @@ This session includes examples of accessing GBIF data from R using the [rgbif](h
 
 ***
 
+install.packages("usethis")
+usethis::edit_r_environ()
+
 ## Choose a species name
 ```{r eval=FALSE}
 require(rgbif) # r-package for GBIF data
