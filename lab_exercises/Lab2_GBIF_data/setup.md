@@ -1,0 +1,211 @@
+---
+title: "Efficient data access for data reporting"
+subtitle: "GBIF Data Access Training, rgbif"
+author: "Dag Endresen, https://orcid.org/0000-0002-2352-5497"
+date:   "November 11, 2025"
+output:
+  html_document:
+    keep_md: true
+    toc: true
+    toc_depth: 3
+---
+
+***
+# Some R settings tips before we start
+
+This script presents some useful settings, in particular how to install some of the R-packages we will use.
+
+* Most Rmd chuncks have settings ```eval=FALSE```, which will exclude execution of this chunk in knitr, but enable manual execution in RStudio.
+* Some of the R-commands below are commented out (with a hash #). To execute selected lines on your computer, you need to uncomment (remove the hash #). You may add comments inside chucks (or in R scripts) using a hash at the start of the lines, or in the middle to make the text after the hash a comment.
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+
+
+***
+
+## Setting a working directory
+
+``` r
+## Setting the working directory, here: to the same directory as the RMD-script. 
+## Primarily useful "outside" of RMarkup chunks. RMarkup (Rmd) chuncks seems to always set the current working directory to the same as the Rmd-script.
+require("rstudioapi")
+#install.packages("rstudioapi")
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd() ## will display the working directory
+```
+
+## Create a folder for demo data
+
+``` r
+## Note however, that RMarkdown with knitr works best with all files in the same directory.
+#dir.create(file.path("./setup")) ## create a folder (inside working directory)
+#dir.create(file.path("../setup")) ## create a folder (next to working directory)
+#dir.create(file.path("..", "setup")) # will work better across OS? on Windows?
+```
+
+## Some useful R-packages to install
+
+``` r
+## It is possible to install R-packages from the script
+install.packages("rmarkdown") # R Markdown
+## Core data access and mapping (modern stack)
+install.packages("rgbif")         # GBIF data access
+install.packages("leaflet")       # Interactive maps
+install.packages("sf")            # Vector spatial data
+install.packages("terra")         # Raster spatial data
+## Data wrangling & I/O
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("readxl")        # Excel without Java
+## Administrative boundaries and climate helpers
+install.packages("geodata")
+install.packages("rnaturalearth")
+install.packages("rnaturalearthdata")
+## Optional palettes
+install.packages("RColorBrewer")
+```
+
+## Load R-packages
+
+``` r
+## Use functions library() or require() to load the R-packages you need
+require('rgbif')        # Access GBIF
+library('leaflet')      # Mapping
+library('sf')           # Vector geospatial
+library('terra')        # Raster geospatial
+library('dplyr')        # Data wrangling
+library('tidyr')        # Tidy data helpers
+library('readxl')       # Excel I/O
+library('geodata')      # WorldClim, GADM helpers
+library('rnaturalearth')
+library('rnaturalearthdata')
+## Optional
+#library('RColorBrewer')
+```
+
+## Clear workspace (be careful)
+
+``` r
+## Large arrays and dataframes can consume huge parts of your working memory,
+## and you probably want to remove some of them from memory when they are not needed anymore.
+#rm(list = ls()) # Be careful, this line cleans the entire R workspace
+#rm(sp) # Probably better to remove large arrays and dataframes individually
+```
+
+***
+
+## Bounding box (examples)
+
+``` r
+## BOUNDING BOX
+##bb <- c(lowerLon, lowerLat, higherLon, higherLat) # bounding box
+bb <- c(31.5740,-25.0030,31.6080,-24.9815) # Skukuza Rest Camp, Kruger
+# nw -24.9815, 31.5740
+# ne -24.9815, 31.6080
+# sw -25.0030, 31.5740
+# se -25.0030, 31.6080
+#
+#bb <- c(10.2,63.3,10.6,63.5) # Trondheim
+#bb <- c(5.25, 60.3, 5.4, 60.4) # Bergen
+#bb <- c(18.7, 69.6, 19.2, 69.8) # Tromsø
+#bb <- c(10.6, 59.9, 10.9, 60.0) # Oslo
+#bb <- c(4.5, 54.9, 31.0, 71.0) # Scandinavia = lon(4.5, 31.0), lon(55, 71)
+##
+#bbox(norway_mask) ## use bbox(spatialObj) to find the bounding box of a spatial object
+```
+
+Norway:
+   min      max
+x  4.628058 31.078054
+y 58.070276 71.113054
+
+South Africa:
+   min       max
+x  16.34497  32.83012
+y -34.81916 -22.09131
+
+Boxes
+ 'NO': ('Norway', (4.99207807783, 58.0788841824, 31.29341841, 80.6571442736))
+ 'ZA': ('South Africa', (16.3449768409, -34.8191663551, 32.830120477, -22.0913127581))
+ 
+ ISO3	Country Name	lat_min	lat_max	lon_min	lon_max
+ NOR	Norway	57.7590052	71.3848787	4.0875274	31.7614911
+ ZAF	South Africa	-47.1788335	-22.1250301	16.3335213	38.2898954
+
+## Print text and variables
+
+``` r
+message(sprintf("Current working dir: %s\n", getwd()))
+paste("Today is", date())
+```
+
+
+``` r
+sprintf(5.55555, fmt = '%#.3f') ## 5.556
+sprintf(5.55555, fmt = '%#.3g') ## 5.56
+```
+
+
+``` r
+library('plyr') ## r-pkg plyr for data handling
+spp_df <- ldply(spp) ## split list, apply function, return dataframe (here list to df)
+```
+
+## List to dataframe
+
+``` r
+#spp <- occ_search(taxonKey=3073, limit=100, return='data', country='NO', hasCoordinate=TRUE)
+library('plyr') ## r-pkg plyr for 
+spp_df <- ldply(spp) ## ldply - split list, apply function, return dataframe (here list to df)
+#spp_m <- spp_df[c("name", "decimalLongitude","decimalLatitude", "basisOfRecord", "year", "municipality")]
+#map_leaflet(spp_m, "decimalLongitude", "decimalLatitude", size=3, color=cols)
+```
+
+
+``` r
+## coordinate reference system
+crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" ## set CRS
+crs(r) <- CRS('+init=EPSG:4326') ## same result, but using EPSG is shorter to write, and easier
+```
+
+
+
+
+***
+
+## Read Excel without Java (using readxl)
+
+``` r
+library(readxl)
+spp_dq <- readxl::read_excel("./setup/spp_dq.xlsx", sheet = 1)
+head(spp_dq, n=5)
+```
+
+***
+
+## Including Plots
+
+![](setup_files/figure-html/pressure-1.png)<!-- -->
+
+***
+
+## Diverse color palettes
+
+``` r
+library(RColorBrewer)
+#display.brewer.all()
+display.brewer.pal(n=9, name='Set1')
+```
+
+![colorBrewer Set1](./setup/display-brewer-pal_Set1.png "colorBrewer Set1")
+
+Read more about colors at the [https://www.r-bloggers.com/palettes-in-r/](R-bloggers story about color palettes in R)
+
+***
+<!-- setup.html is generated from setup.Rmd -->
+![](./images/gbif-norway-full.png "GBIF banner")
